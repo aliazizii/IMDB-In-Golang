@@ -1,6 +1,13 @@
 package store
 
-import "github.com/aliazizii/IMDB-In-Golang/internal/model"
+import (
+	"errors"
+	"github.com/aliazizii/IMDB-In-Golang/internal/model"
+)
+
+var DuplicateMovie = errors.New("This movie already exists")
+var MovieNotFound = errors.New("This movie dosen't exist")
+var DuplicateVote = errors.New("This vote already exists")
 
 type IMDB interface {
 	AddMovie(model.Movie) error

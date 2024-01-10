@@ -8,12 +8,13 @@ type Movie struct {
 	Description string
 	Rating      float64
 	Comments    []Comment
+	NVote       float64
 }
 
 type Vote struct {
 	ID      int
 	User    User
-	Rating  int
+	Rating  float64
 	MovieID int
 }
 
@@ -29,5 +30,5 @@ type User struct {
 	ID       int
 	Role     int
 	Username string
-	Password string
+	Password string // should not save plain text
 }
