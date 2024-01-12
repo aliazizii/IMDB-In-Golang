@@ -3,12 +3,12 @@ package model
 import "time"
 
 type Movie struct {
-	ID          int
-	Name        string
-	Description string
-	Rating      float64
-	Comments    []Comment
-	NVote       float64
+	ID          int       `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Rating      float64   `json:"rating"`
+	Comments    []Comment `json:"comments"`
+	NVote       float64   `json:"number_of_votes"`
 }
 
 type Vote struct {
@@ -19,12 +19,12 @@ type Vote struct {
 }
 
 type Comment struct {
-	ID        int
-	User      User
-	Text      string
-	CreatedAt time.Time
-	MovieID   int
-	//Approved bool
+	ID        int       `json:"id"`
+	User      User      `json:"user"`
+	Text      string    `json:"text"`
+	CreatedAt time.Time `json:"createdAt"`
+	MovieID   int       `json:"movie_id"`
+	Approved  bool      `json:"approved"`
 }
 type User struct {
 	ID       int
