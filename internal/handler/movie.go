@@ -5,17 +5,17 @@ import (
 	"github.com/aliazizii/IMDB-In-Golang/internal/model"
 	"github.com/aliazizii/IMDB-In-Golang/internal/request"
 	"github.com/aliazizii/IMDB-In-Golang/internal/response"
-	"github.com/aliazizii/IMDB-In-Golang/internal/store"
+	"github.com/aliazizii/IMDB-In-Golang/internal/store/movie"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
 )
 
-type Admin struct {
-	Store store.IMDB
+type Movie struct {
+	Store movie.Movie
 }
 
-func (admin Admin) AddMovie(c echo.Context) error {
+func (imovie Movie) AddMovie(c echo.Context) error {
 	var req request.Movie
 	if err := c.Bind(&req); err != nil {
 		// log
@@ -28,8 +28,8 @@ func (admin Admin) AddMovie(c echo.Context) error {
 		NVote:       0,
 		Comments:    make([]model.Comment, 0),
 	}
-	if err := admin.Store.AddMovie(m); err != nil {
-		if errors.Is(err, store.DuplicateMovie) {
+	if err := imovie.Store.AddMovie(m); err != nil {
+		if errors.Is(err, movie.DuplicateMovie) {
 			// log
 			return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 		}
@@ -39,15 +39,15 @@ func (admin Admin) AddMovie(c echo.Context) error {
 	return c.JSON(http.StatusNoContent, "")
 }
 
-func (admin Admin) DeleteMovie(c echo.Context) error {
+func (imovie Movie) DeleteMovie(c echo.Context) error {
 	id := c.Param("id")
 	intID, err := strconv.Atoi(id)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 	}
-	err = admin.Store.DeleteMovie(intID)
+	err = imovie.Store.DeleteMovie(intID)
 	if err != nil {
-		if errors.Is(err, store.MovieNotFound) {
+		if errors.Is(err, movie.MovieNotFound) {
 			return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 		}
 		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
@@ -55,7 +55,7 @@ func (admin Admin) DeleteMovie(c echo.Context) error {
 	return c.JSON(http.StatusNoContent, "")
 }
 
-func (admin Admin) UpdateMovie(c echo.Context) error {
+func (imovie Movie) UpdateMovie(c echo.Context) error {
 	id := c.Param("id")
 	intID, err := strconv.Atoi(id)
 	if err != nil {
@@ -70,9 +70,9 @@ func (admin Admin) UpdateMovie(c echo.Context) error {
 		Name:        req.Name,
 		Description: req.Description,
 	}
-	err = admin.Store.UpdateMovie(intID, m)
+	err = imovie.Store.UpdateMovie(intID, m)
 	if err != nil {
-		if errors.Is(err, store.MovieNotFound) {
+		if errors.Is(err, movie.MovieNotFound) {
 			return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 		}
 		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
@@ -80,48 +80,74 @@ func (admin Admin) UpdateMovie(c echo.Context) error {
 	return c.JSON(http.StatusNoContent, "")
 }
 
-func (admin Admin) UpdateComment(c echo.Context) error {
+func (imovie Movie) AllMovies(c echo.Context) error {
+	movies, err := imovie.Store.AllMovies()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
+	}
+	responseMovies := response.AllMovies{
+		Movies: make([]response.Movie, 0),
+	}
+	for _, mm := range movies {
+		responseMovies.Movies = append(responseMovies.Movies, response.Movie{
+			ID:          mm.ID,
+			Name:        mm.Name,
+			Description: mm.Description,
+			Rating:      mm.Rating,
+		})
+	}
+	return c.JSON(http.StatusOK, responseMovies)
+}
+
+func (imovie Movie) Movie(c echo.Context) error {
 	id := c.Param("id")
 	intID, err := strconv.Atoi(id)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 	}
-	var req request.UpdateComment
-	err = c.Bind(&req)
+	mm, err := imovie.Store.Movie(intID)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
-	}
-
-	err = admin.Store.UpdateComment(intID, req.Approved)
-	if err != nil {
-		if errors.Is(err, store.CommentNotFound) {
+		if errors.Is(err, movie.MovieNotFound) {
 			return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 		}
 		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
 	}
-	return c.JSON(http.StatusNoContent, "")
+	responseMovie := response.Movie{
+		ID:          mm.ID,
+		Name:        mm.Name,
+		Description: mm.Description,
+		Rating:      mm.Rating,
+	}
+	return c.JSON(http.StatusOK, responseMovie)
 }
 
-func (admin Admin) DeleteComment(c echo.Context) error {
-	id := c.Param("id")
+func (imovie Movie) Comments(c echo.Context) error {
+	id := c.QueryParam("movie")
 	intID, err := strconv.Atoi(id)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 	}
-	err = admin.Store.DeleteComment(intID)
+	comments, err := imovie.Store.AllComments(intID)
 	if err != nil {
-		if errors.Is(err, store.CommentNotFound) {
+		if errors.Is(err, movie.MovieNotFound) {
 			return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 		}
 		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
 	}
-	return c.JSON(http.StatusNoContent, "")
-}
-
-func (admin Admin) AdminRegister(g *echo.Group) {
-	g.POST("/movie", admin.AddMovie)
-	g.PUT("/movie/:id", admin.UpdateMovie)
-	g.DELETE("/movie/:id", admin.DeleteMovie)
-	g.PUT("/comment/:id", admin.UpdateComment)
-	g.DELETE("/comment/:id", admin.DeleteComment)
+	mm, err := imovie.Store.Movie(intID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
+	}
+	responseComments := response.Comments{
+		Movie:    mm.Name,
+		Comments: make([]response.Comment, 0),
+	}
+	for _, cc := range comments {
+		responseComments.Comments = append(responseComments.Comments, response.Comment{
+			ID:     cc.ID,
+			Author: cc.User.Username,
+			Body:   cc.Text,
+		})
+	}
+	return c.JSON(http.StatusOK, responseComments)
 }
