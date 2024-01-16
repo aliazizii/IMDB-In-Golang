@@ -35,7 +35,8 @@ func (imovie Movie) AddMovie(c echo.Context) error {
 		Description: req.Description,
 		Rating:      0,
 		NVote:       0,
-		Comments:    make([]model.Comment, 0),
+		// should be removed or not?
+		Comments: make([]model.Comment, 0),
 	}
 	if err = imovie.Store.AddMovie(m); err != nil {
 		if errors.Is(err, movie.DuplicateMovie) {

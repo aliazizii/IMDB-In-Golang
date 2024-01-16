@@ -80,7 +80,7 @@ func (icomment Comment) Comment(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
 	}
 	if claims.Role != auth.UserRoleCode {
-		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only admin can use this endpoint"))
+		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only users can use this endpoint"))
 	}
 
 	var req request.Comment
@@ -89,10 +89,11 @@ func (icomment Comment) Comment(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 	}
 	m := model.Comment{
-		MovieID:   req.MovieID,
-		Text:      req.CommentBody,
-		CreatedAt: time.Now(),
-		Approved:  false,
+		MovieID:        req.MovieID,
+		Text:           req.CommentBody,
+		CreatedAt:      time.Now(),
+		Approved:       false,
+		AuthorUsername: claims.Id,
 	}
 	err = icomment.Store.Comment(m)
 	if err != nil {

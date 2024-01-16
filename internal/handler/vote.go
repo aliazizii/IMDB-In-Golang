@@ -22,7 +22,7 @@ func (ivote Vote) Vote(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
 	}
 	if claims.Role != auth.UserRoleCode {
-		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only admin can use this endpoint"))
+		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only users can use this endpoint"))
 	}
 
 	var req request.Vote
@@ -31,8 +31,9 @@ func (ivote Vote) Vote(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 	}
 	m := model.Vote{
-		MovieID: req.MovieID,
-		Rating:  req.Vote,
+		MovieID:      req.MovieID,
+		Rating:       req.Vote,
+		UserUsername: claims.Id,
 	}
 	err = ivote.Store.Vote(m)
 	if err != nil {
