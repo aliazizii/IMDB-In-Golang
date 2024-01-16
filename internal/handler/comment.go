@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"github.com/aliazizii/IMDB-In-Golang/internal/auth"
 	"github.com/aliazizii/IMDB-In-Golang/internal/model"
 	"github.com/aliazizii/IMDB-In-Golang/internal/request"
 	"github.com/aliazizii/IMDB-In-Golang/internal/response"
@@ -17,6 +18,15 @@ type Comment struct {
 }
 
 func (icomment Comment) UpdateComment(c echo.Context) error {
+	claims, err := auth.ExtractJWT(c)
+	if err != nil {
+		// log
+		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
+	}
+	if claims.Role != auth.AdminRoleCode {
+		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only admin can use this endpoint"))
+	}
+
 	id := c.Param("id")
 	intID, err := strconv.Atoi(id)
 	if err != nil {
@@ -39,6 +49,15 @@ func (icomment Comment) UpdateComment(c echo.Context) error {
 }
 
 func (icomment Comment) DeleteComment(c echo.Context) error {
+	claims, err := auth.ExtractJWT(c)
+	if err != nil {
+		// log
+		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
+	}
+	if claims.Role != auth.AdminRoleCode {
+		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only admin can use this endpoint"))
+	}
+
 	id := c.Param("id")
 	intID, err := strconv.Atoi(id)
 	if err != nil {
@@ -55,8 +74,17 @@ func (icomment Comment) DeleteComment(c echo.Context) error {
 }
 
 func (icomment Comment) Comment(c echo.Context) error {
+	claims, err := auth.ExtractJWT(c)
+	if err != nil {
+		// log
+		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
+	}
+	if claims.Role != auth.UserRoleCode {
+		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only admin can use this endpoint"))
+	}
+
 	var req request.Comment
-	err := c.Bind(&req)
+	err = c.Bind(&req)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 	}

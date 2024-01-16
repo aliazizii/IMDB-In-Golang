@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"github.com/aliazizii/IMDB-In-Golang/internal/auth"
 	"github.com/aliazizii/IMDB-In-Golang/internal/model"
 	"github.com/aliazizii/IMDB-In-Golang/internal/request"
 	"github.com/aliazizii/IMDB-In-Golang/internal/response"
@@ -15,8 +16,17 @@ type Vote struct {
 }
 
 func (ivote Vote) Vote(c echo.Context) error {
+	claims, err := auth.ExtractJWT(c)
+	if err != nil {
+		// log
+		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
+	}
+	if claims.Role != auth.UserRoleCode {
+		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only admin can use this endpoint"))
+	}
+
 	var req request.Vote
-	err := c.Bind(&req)
+	err = c.Bind(&req)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 	}

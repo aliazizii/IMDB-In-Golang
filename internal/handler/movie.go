@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"github.com/aliazizii/IMDB-In-Golang/internal/auth"
 	"github.com/aliazizii/IMDB-In-Golang/internal/model"
 	"github.com/aliazizii/IMDB-In-Golang/internal/request"
 	"github.com/aliazizii/IMDB-In-Golang/internal/response"
@@ -16,6 +17,14 @@ type Movie struct {
 }
 
 func (imovie Movie) AddMovie(c echo.Context) error {
+	claims, err := auth.ExtractJWT(c)
+	if err != nil {
+		// log
+		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
+	}
+	if claims.Role != auth.AdminRoleCode {
+		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only admin can use this endpoint"))
+	}
 	var req request.Movie
 	if err := c.Bind(&req); err != nil {
 		// log
@@ -28,7 +37,7 @@ func (imovie Movie) AddMovie(c echo.Context) error {
 		NVote:       0,
 		Comments:    make([]model.Comment, 0),
 	}
-	if err := imovie.Store.AddMovie(m); err != nil {
+	if err = imovie.Store.AddMovie(m); err != nil {
 		if errors.Is(err, movie.DuplicateMovie) {
 			// log
 			return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
@@ -40,6 +49,14 @@ func (imovie Movie) AddMovie(c echo.Context) error {
 }
 
 func (imovie Movie) DeleteMovie(c echo.Context) error {
+	claims, err := auth.ExtractJWT(c)
+	if err != nil {
+		// log
+		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
+	}
+	if claims.Role != auth.AdminRoleCode {
+		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only admin can use this endpoint"))
+	}
 	id := c.Param("id")
 	intID, err := strconv.Atoi(id)
 	if err != nil {
@@ -56,6 +73,15 @@ func (imovie Movie) DeleteMovie(c echo.Context) error {
 }
 
 func (imovie Movie) UpdateMovie(c echo.Context) error {
+	claims, err := auth.ExtractJWT(c)
+	if err != nil {
+		// log
+		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
+	}
+	if claims.Role != auth.AdminRoleCode {
+		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only admin can use this endpoint"))
+	}
+
 	id := c.Param("id")
 	intID, err := strconv.Atoi(id)
 	if err != nil {
