@@ -26,6 +26,13 @@ type Comments struct {
 	Comments []Comment `json:"comments"`
 }
 
+type User struct {
+	ID       int
+	Username string
+	IsAdmin  bool
+	JWT      string
+}
+
 func CreateErrMessageResponse(s string) *Err {
 	return &Err{
 		message: s,
