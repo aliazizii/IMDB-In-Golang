@@ -8,26 +8,32 @@ import (
 	"github.com/aliazizii/IMDB-In-Golang/internal/response"
 	"github.com/aliazizii/IMDB-In-Golang/internal/store/vote"
 	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 	"net/http"
 )
 
 type Vote struct {
-	Store vote.Vote
+	Store  vote.Vote
+	Logger *zap.Logger
 }
 
 func (ivote Vote) Vote(c echo.Context) error {
 	claims, err := auth.ExtractJWT(c)
 	if err != nil {
-		// log
+		ivote.Logger.Error("Vote: failed to extract claim", zap.Error(err))
 		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
 	}
 	if claims.Role != auth.UserRoleCode {
 		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only users can use this endpoint"))
 	}
-
+	if claims.StandardClaims.Valid() != nil {
+		ivote.Logger.Error("Vote: invalid claim", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("the token is expired, login again"))
+	}
 	var req request.Vote
 	err = c.Bind(&req)
 	if err != nil {
+		ivote.Logger.Error("Vote: can not bind request", zap.Error(err))
 		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 	}
 	m := model.Vote{
@@ -38,9 +44,10 @@ func (ivote Vote) Vote(c echo.Context) error {
 	err = ivote.Store.Vote(m)
 	if err != nil {
 		if errors.Is(err, vote.DuplicateVote) {
-			// log
+			ivote.Logger.Error("Vote: already vote this movie", zap.Error(err))
 			return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 		}
+		ivote.Logger.Error("Vote: an error happens when voting a movie", zap.Error(err))
 		return c.JSON(http.StatusInternalServerError, response.CreateErrMessageResponse("there is an internal issue"))
 	}
 	return c.JSON(http.StatusNoContent, "")

@@ -28,18 +28,9 @@ type JwtClaim struct {
 	jwt.StandardClaims
 }
 
-func Validate(claim JwtClaim) error {
-	if claim.ExpiresAt < time.Now().Unix() {
-		return ErrTokenExpired
-	}
-	if claim.IssuedAt > time.Now().Unix() {
-		return ErrInvalidIssuedAt
-	}
-	return nil
-}
-
 func ExtractJWT(c echo.Context) (*JwtClaim, error) {
 	token, ok := c.Get(ContextKey).(*jwt.Token)
+
 	if !ok {
 		return nil, fmt.Errorf("failed to extract cliams: %w", ErrTokenNotFound)
 	}
