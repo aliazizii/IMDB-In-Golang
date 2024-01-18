@@ -36,6 +36,10 @@ func (imovie Movie) AddMovie(c echo.Context) error {
 		imovie.Logger.Error("Add movie: can not bind the request:", zap.Error(err))
 		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 	}
+	if err := req.Validate(); err != nil {
+		imovie.Logger.Error("Add movie: request validation field fails", zap.Error(err), zap.Any("request", req))
+		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
+	}
 	m := model.Movie{
 		Name:        req.Name,
 		Description: req.Description,
@@ -109,6 +113,10 @@ func (imovie Movie) UpdateMovie(c echo.Context) error {
 	var req request.Movie
 	if err := c.Bind(&req); err != nil {
 		imovie.Logger.Error("Update movie: can not bind the request:", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
+	}
+	if err := req.Validate(); err != nil {
+		imovie.Logger.Error("Update movie: request validation field fails", zap.Error(err), zap.Any("request", req))
 		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 	}
 	m := model.Movie{

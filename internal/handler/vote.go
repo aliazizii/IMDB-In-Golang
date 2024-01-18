@@ -36,9 +36,13 @@ func (ivote Vote) Vote(c echo.Context) error {
 		ivote.Logger.Error("Vote: can not bind request", zap.Error(err))
 		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 	}
+	if err := req.Validate(); err != nil {
+		ivote.Logger.Error("Vote: request validation field fails", zap.Error(err), zap.Any("request", req))
+		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
+	}
 	m := model.Vote{
 		MovieID:      req.MovieID,
-		Rating:       req.Vote,
+		Rating:       float64(req.Vote),
 		UserUsername: claims.Id,
 	}
 	err = ivote.Store.Vote(m)

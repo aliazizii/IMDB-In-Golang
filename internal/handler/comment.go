@@ -44,7 +44,10 @@ func (icomment Comment) UpdateComment(c echo.Context) error {
 		icomment.Logger.Error("Update comment: can not bind the request:", zap.Error(err))
 		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 	}
-
+	if err := req.Validate(); err != nil {
+		icomment.Logger.Error("Update comment: request validation field fails", zap.Error(err), zap.Any("request", req))
+		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
+	}
 	err = icomment.Store.UpdateComment(intID, req.Approved)
 	if err != nil {
 		if errors.Is(err, comment.CommentNotFound) {
@@ -105,6 +108,10 @@ func (icomment Comment) Comment(c echo.Context) error {
 	err = c.Bind(&req)
 	if err != nil {
 		icomment.Logger.Error("Comment: can not bind the request:", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
+	}
+	if err := req.Validate(); err != nil {
+		icomment.Logger.Error("Comment: request validation field fails", zap.Error(err), zap.Any("request", req))
 		return c.JSON(http.StatusBadRequest, response.CreateErrMessageResponse("bad request"))
 	}
 	m := model.Comment{
