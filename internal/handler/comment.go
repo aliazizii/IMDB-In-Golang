@@ -28,10 +28,6 @@ func (icomment Comment) UpdateComment(c echo.Context) error {
 	if claims.Role != auth.AdminRoleCode {
 		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only admin can use this endpoint"))
 	}
-	if claims.StandardClaims.Valid() != nil {
-		icomment.Logger.Error("Update comment: claim is invalid:", zap.Error(err))
-		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("the token is expired, login again"))
-	}
 	id := c.Param("id")
 	intID, err := strconv.Atoi(id)
 	if err != nil {
@@ -69,10 +65,6 @@ func (icomment Comment) DeleteComment(c echo.Context) error {
 	if claims.Role != auth.AdminRoleCode {
 		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only admin can use this endpoint"))
 	}
-	if claims.StandardClaims.Valid() != nil {
-		icomment.Logger.Error("Delete comment: claim is invalid:", zap.Error(err))
-		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("the token is expired, login again"))
-	}
 	id := c.Param("id")
 	intID, err := strconv.Atoi(id)
 	if err != nil {
@@ -100,10 +92,6 @@ func (icomment Comment) Comment(c echo.Context) error {
 	if claims.Role != auth.UserRoleCode {
 		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only users can use this endpoint"))
 	}
-	if claims.StandardClaims.Valid() != nil {
-		icomment.Logger.Error("Comment: claim is invalid:", zap.Error(err))
-		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("the token is expired, login again"))
-	}
 	var req request.Comment
 	err = c.Bind(&req)
 	if err != nil {
@@ -119,7 +107,7 @@ func (icomment Comment) Comment(c echo.Context) error {
 		Text:           req.CommentBody,
 		CreatedAt:      time.Now(),
 		Approved:       false,
-		AuthorUsername: claims.Id,
+		AuthorUsername: claims.ID,
 	}
 	err = icomment.Store.Comment(m)
 	if err != nil {

@@ -27,10 +27,6 @@ func (imovie Movie) AddMovie(c echo.Context) error {
 	if claims.Role != auth.AdminRoleCode {
 		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only admin can use this endpoint"))
 	}
-	if claims.StandardClaims.Valid() != nil {
-		imovie.Logger.Error("Add movie: claim is invalid:", zap.Error(claims.StandardClaims.Valid()))
-		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("the token is expired, login again"))
-	}
 	var req request.Movie
 	if err := c.Bind(&req); err != nil {
 		imovie.Logger.Error("Add movie: can not bind the request:", zap.Error(err))
@@ -68,10 +64,6 @@ func (imovie Movie) DeleteMovie(c echo.Context) error {
 	if claims.Role != auth.AdminRoleCode {
 		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only admin can use this endpoint"))
 	}
-	if claims.StandardClaims.Valid() != nil {
-		imovie.Logger.Error("Delete movie: claim is invalid:", zap.Error(claims.StandardClaims.Valid()))
-		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("the token is expired, login again"))
-	}
 	id := c.Param("id")
 	intID, err := strconv.Atoi(id)
 	if err != nil {
@@ -99,11 +91,6 @@ func (imovie Movie) UpdateMovie(c echo.Context) error {
 	if claims.Role != auth.AdminRoleCode {
 		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only admin can use this endpoint"))
 	}
-	if claims.StandardClaims.Valid() != nil {
-		imovie.Logger.Error("Update movie: claim is invalid:", zap.Error(claims.StandardClaims.Valid()))
-		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("the token is expired, login again"))
-	}
-
 	id := c.Param("id")
 	intID, err := strconv.Atoi(id)
 	if err != nil {

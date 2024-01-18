@@ -26,10 +26,6 @@ func (ivote Vote) Vote(c echo.Context) error {
 	if claims.Role != auth.UserRoleCode {
 		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("only users can use this endpoint"))
 	}
-	if claims.StandardClaims.Valid() != nil {
-		ivote.Logger.Error("Vote: invalid claim", zap.Error(err))
-		return c.JSON(http.StatusUnauthorized, response.CreateErrMessageResponse("the token is expired, login again"))
-	}
 	var req request.Vote
 	err = c.Bind(&req)
 	if err != nil {
@@ -43,7 +39,7 @@ func (ivote Vote) Vote(c echo.Context) error {
 	m := model.Vote{
 		MovieID:      req.MovieID,
 		Rating:       float64(req.Vote),
-		UserUsername: claims.Id,
+		UserUsername: claims.ID,
 	}
 	err = ivote.Store.Vote(m)
 	if err != nil {

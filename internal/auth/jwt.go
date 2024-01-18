@@ -3,7 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"time"
 )
@@ -25,7 +25,7 @@ var (
 
 type JwtClaim struct {
 	Role int
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 func ExtractJWT(c echo.Context) (*JwtClaim, error) {
@@ -50,11 +50,11 @@ func GenerateJWT(secret, username string, isAdmin bool) (string, error) {
 	}
 	claim := JwtClaim{
 		roleCode,
-		jwt.StandardClaims{
-			Id:        username,
+		jwt.RegisteredClaims{
+			ID:        username,
 			Issuer:    Iss,
-			IssuedAt:  time.Now().Unix(),
-			ExpiresAt: time.Now().Add(DefaultExpireTime).Unix(),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(DefaultExpireTime)),
 		},
 	}
 	rawToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)

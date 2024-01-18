@@ -77,6 +77,7 @@ func (iuser User) SignUp(c echo.Context) error {
 	u := model.User{
 		Username: req.Username,
 		Password: req.Password,
+		Role:     auth.UserRoleCode,
 	}
 	err := iuser.Store.Save(u)
 	if err != nil {

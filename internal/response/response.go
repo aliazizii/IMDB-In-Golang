@@ -1,7 +1,7 @@
 package response
 
 type Err struct {
-	message string `json:"message"`
+	Message string `json:"message"`
 }
 
 type Movie struct {
@@ -33,8 +33,9 @@ type User struct {
 	JWT      string
 }
 
-func CreateErrMessageResponse(s string) *Err {
-	return &Err{
-		message: s,
+func CreateErrMessageResponse(s string) Err {
+	err := Err{
+		Message: s,
 	}
+	return err
 }
