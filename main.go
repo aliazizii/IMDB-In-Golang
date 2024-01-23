@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/aliazizii/IMDB-In-Golang/internal/auth"
+	"github.com/aliazizii/IMDB-In-Golang/internal/config"
+	"github.com/aliazizii/IMDB-In-Golang/internal/database"
 	"github.com/aliazizii/IMDB-In-Golang/internal/handler"
 	"github.com/aliazizii/IMDB-In-Golang/internal/model"
 	"github.com/aliazizii/IMDB-In-Golang/internal/store/comment"
@@ -11,24 +13,27 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
+	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 	"log"
 )
 
 func main() {
+
 	app := echo.New()
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatal(err)
 	}
-	db, err := gorm.Open(sqlite.Open("test10.db"), new(gorm.Config))
+	cfg := config.Default
+	db, err := database.New(cfg.DB)
 	if err != nil {
 		log.Fatal(err)
 	}
-	db.AutoMigrate(&model.Movie{}, &model.User{}, &model.Comment{}, &model.Vote{})
-
+	err = db.AutoMigrate(&model.Movie{}, &model.User{}, &model.Comment{}, &model.Vote{})
+	if err != nil {
+		log.Fatal(err)
+	}
 	// Add Admin
 	// Admin should be in config
 	db.Save(&model.User{
@@ -39,9 +44,8 @@ func main() {
 
 	u := user.NewSQL(db)
 	userHandler := handler.User{
-		Store: u,
-		// It should be in config
-		JwtSecret: "secret",
+		Store:     u,
+		JwtSecret: cfg.Secret,
 		Logger:    logger,
 	}
 
@@ -75,7 +79,7 @@ func main() {
 	userArea := app.Group("/user")
 
 	jwtConfig := echojwt.Config{
-		SigningKey: []byte("secret"),
+		SigningKey: []byte(cfg.Secret),
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return &auth.JwtClaim{}
 		},
@@ -92,7 +96,7 @@ func main() {
 
 	//user area routing
 	userArea.POST("/comment", commentHandler.Comment)
-	userArea.POST("vote", voteHandler.Vote)
+	userArea.POST("/vote", voteHandler.Vote)
 
 	if err := app.Start(":1234"); err != nil {
 		log.Fatal("cannot start the http server")
