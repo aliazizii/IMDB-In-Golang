@@ -20,19 +20,6 @@ func NewSQL(db *gorm.DB) SQL {
 	}
 }
 
-type myVote model.Vote
-
-func (v myVote) AfterSave(db *gorm.DB) (err error) {
-	var m model.Movie
-	db.First(&m, v.MovieID)
-	nVote := m.NVote
-	movieRating := m.Rating
-	m.Rating = ((nVote * movieRating) + v.Rating) / (nVote + 1)
-	m.NVote += 1
-	db.Save(&m)
-	return
-}
-
 func (sql SQL) Vote(v model.Vote) error {
 	ok, err := sql.isExistVote(v.MovieID, v.UserUsername)
 	if err != nil {
@@ -41,7 +28,7 @@ func (sql SQL) Vote(v model.Vote) error {
 	if ok {
 		return DuplicateVote
 	}
-	return sql.DB.Save(&v).Error
+	return sql.DB.Model(&model.Vote{}).Save(&v).Error
 }
 
 func (sql SQL) isExistVote(movieID int, userUsername string) (bool, error) {
