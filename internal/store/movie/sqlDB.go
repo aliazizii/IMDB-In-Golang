@@ -22,7 +22,7 @@ func NewSQL(db *gorm.DB) SQL {
 
 func (sql SQL) isExistMovie(name string, description string) (bool, error) {
 	var m model.Movie
-	query := sql.DB.Where("Name = ? AND Description = ?", name, description).First(&m)
+	query := sql.DB.Where("Name = ?", name).First(&m)
 	if errors.Is(query.Error, gorm.ErrRecordNotFound) {
 		return false, nil
 	}
@@ -45,11 +45,11 @@ func (sql SQL) AddMovie(m model.Movie) error {
 
 func (sql SQL) DeleteMovie(i int) error {
 	query := sql.DB.Delete(&model.Movie{}, i)
-	if errors.Is(query.Error, gorm.ErrRecordNotFound) {
-		return MovieNotFound
-	}
 	if query.Error != nil {
 		return query.Error
+	}
+	if query.RowsAffected == 0 {
+		return MovieNotFound
 	}
 	return nil
 }

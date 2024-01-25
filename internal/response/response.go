@@ -16,9 +16,10 @@ type AllMovies struct {
 }
 
 type Comment struct {
-	ID     int    `json:"id"`
-	Author string `json:"author"`
-	Body   string `json:"body"`
+	ID       int    `json:"id"`
+	Author   string `json:"author"`
+	Body     string `json:"body"`
+	Approved bool   `json:"approved"`
 }
 
 type Comments struct {

@@ -10,5 +10,6 @@ type Movie struct {
 func (m Movie) Validate() error {
 	return validation.ValidateStruct(&m,
 		validation.Field(&m.Name, validation.Required),
+		validation.Field(&m.Description, validation.Required),
 	)
 }

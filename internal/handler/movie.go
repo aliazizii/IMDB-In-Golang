@@ -194,9 +194,10 @@ func (imovie Movie) Comments(c echo.Context) error {
 	}
 	for _, cc := range comments {
 		responseComments.Comments = append(responseComments.Comments, response.Comment{
-			ID:     cc.ID,
-			Author: cc.User.Username,
-			Body:   cc.Text,
+			ID:       cc.ID,
+			Author:   cc.AuthorUsername,
+			Body:     cc.Text,
+			Approved: cc.Approved,
 		})
 	}
 	return c.JSON(http.StatusOK, responseComments)
