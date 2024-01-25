@@ -9,7 +9,7 @@ require (
 	github.com/labstack/echo/v4 v4.11.4
 	github.com/mattn/go-sqlite3 v1.14.19
 	go.uber.org/zap v1.26.0
-	gorm.io/driver/sqlite v1.5.4
+	gorm.io/driver/postgres v1.5.4
 	gorm.io/gorm v1.25.5
 )
 
@@ -34,5 +34,4 @@ require (
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	gorm.io/driver/postgres v1.5.4 // indirect
 )
