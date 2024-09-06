@@ -4,9 +4,9 @@ var Default = Config{
 	DB: Database{
 		Host:     "localhost",
 		Port:     "5432",
-		Name:     "imdb",
+		Name:     "postgres",
 		User:     "postgres",
-		Password: "your_password",
+		Password: "demo",
 	},
 	Secret: "secret",
 }

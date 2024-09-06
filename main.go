@@ -19,23 +19,26 @@ import (
 )
 
 func main() {
-
 	app := echo.New()
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	cfg := config.Default
+
 	db, err := database.New(cfg.DB)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	err = db.AutoMigrate(&model.Movie{}, &model.User{}, &model.Comment{}, &model.Vote{})
 	if err != nil {
 		log.Fatal(err)
 	}
-	// Add Admin
-	// Admin should be in config
+
+	// add admin
+	// admin should be in config
 	db.Save(&model.User{
 		Username: "ali",
 		Password: auth.Hash("1234"),
