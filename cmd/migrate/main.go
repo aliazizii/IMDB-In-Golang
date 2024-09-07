@@ -5,19 +5,19 @@ import (
 	"github.com/aliazizii/IMDB-In-Golang/internal/auth"
 	"github.com/aliazizii/IMDB-In-Golang/internal/database"
 	"github.com/aliazizii/IMDB-In-Golang/internal/model"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"log"
 )
 
 func main(cfg *config.Config) {
 	db, err := database.New(cfg.DB)
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 
 	err = db.AutoMigrate(&model.Movie{}, &model.User{}, &model.Comment{}, &model.Vote{})
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 
 	db.Save(&model.User{

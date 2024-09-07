@@ -12,46 +12,37 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
-	"log"
 )
 
 func main(cfg *config.Config) {
 	app := echo.New()
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	db, err := database.New(cfg.DB)
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 
 	u := user.NewSQL(db)
 	userHandler := handler.User{
 		Store:     u,
 		JwtSecret: cfg.Secret,
-		Logger:    logger,
 	}
 
 	m := movie.NewSQL(db)
 	movieHandler := handler.Movie{
-		Store:  m,
-		Logger: logger,
+		Store: m,
 	}
 
 	c := comment.NewSQL(db)
 	commentHandler := handler.Comment{
-		Store:  c,
-		Logger: logger,
+		Store: c,
 	}
 
 	v := vote.NewSQL(db)
 	voteHandler := handler.Vote{
-		Store:  v,
-		Logger: logger,
+		Store: v,
 	}
 
 	// unrestricted endpoints
@@ -86,7 +77,7 @@ func main(cfg *config.Config) {
 	userArea.POST("/vote", voteHandler.Vote)
 
 	if err := app.Start(":1234"); err != nil {
-		log.Fatal("cannot start the http server")
+		logrus.Fatalf("cannot start the http server:", err)
 	}
 }
 

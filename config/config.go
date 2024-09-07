@@ -2,12 +2,14 @@ package config
 
 import (
 	"github.com/aliazizii/IMDB-In-Golang/internal/model"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
 type Config struct {
 	DB     *Database
 	Admin  *model.User
+	Logger *Logger
 	Secret string `mapstructure:"SECRET"`
 }
 
@@ -17,6 +19,11 @@ type Database struct {
 	Name     string `mapstructure:"DB_NAME"`
 	User     string `mapstructure:"DB_USER"`
 	Password string `mapstructure:"DB_PASSWORD"`
+}
+
+type Logger struct {
+	Level   logrus.Level
+	Enabled bool
 }
 
 func Read() (*Config, error) {
@@ -44,10 +51,16 @@ func Read() (*Config, error) {
 		Password: viper.GetString("ADMIN_PASSWORD"),
 	}
 
+	logger := &Logger{
+		Level:   logrus.Level(viper.GetInt("LOG_LEVEL")),
+		Enabled: viper.GetBool("LOG_ENABLED"),
+	}
+
 	cfg := &Config{
 		Secret: viper.GetString("SECRET"),
 		DB:     db,
 		Admin:  admin,
+		Logger: logger,
 	}
 
 	return cfg, nil
